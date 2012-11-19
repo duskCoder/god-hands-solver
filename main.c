@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
@@ -47,7 +48,7 @@ static inline int get_prev(int current)
     return prev;
 }
 
-static int perform_resolve_god_hands(int activated, int level)
+static int perform_resolve_god_hands(int activated, int offset)
 {
     int next, prev;
 
@@ -57,7 +58,7 @@ static int perform_resolve_god_hands(int activated, int level)
     }
 
     /* activate the current case */
-    map_g->elem[activated].rang = level;
+    map_g->elem[activated].rang = offset;
 
     if (map_is_empty()) {
 	/* we won */
@@ -67,10 +68,10 @@ static int perform_resolve_god_hands(int activated, int level)
     next = get_next(activated);
     prev = get_prev(activated);
 
-    if (perform_resolve_god_hands(next, level + 1) == 0)
+    if (perform_resolve_god_hands(next, offset + 1) == 0)
 	return 0;
 
-    if (perform_resolve_god_hands(prev, level + 1) == 0)
+    if (perform_resolve_god_hands(prev, offset + 1) == 0)
 	return 0;
 
     /* reset to default */
@@ -118,16 +119,19 @@ static void display_solution(const map_t *map)
 int main(void)
 {
     map_t map;
-    char buffer[8];
+    char buffer[16];
 
-    puts("size of the map");
-    map.len = atoi(fgets(buffer, 8, stdin));
+    if (isatty(0))
+	fputs("size of the map: ", stdout);
+    map.len = atoi(fgets(buffer, sizeof(buffer), stdin));
 
-    map.elem = malloc(sizeof(byte) * map.len);
+    map.elem = malloc(sizeof(elem_t) * map.len);
 
     for (int i = 0; i < map.len; i++) {
-	printf("(%02d/%02d): ", i + 1, map.len);
-	map.elem[i].value = atoi(fgets(buffer, 8, stdin));
+	if (isatty(0))
+	    printf("(%02d/%02d): ", i + 1, map.len);
+	fflush(stdout);
+	map.elem[i].value = atoi(fgets(buffer, sizeof(buffer), stdin));
     }
 
     if ((solve_god_hands(&map)) != 0) {
