@@ -28,7 +28,7 @@ depend: .depend
 	@$(RM) .depend
 	@$(CC) $(CFLAGS) -MM $^ > .depend
 
-include .depend
+-include .depend
 
 OBJ     = $(SRC:.c=.o)
 
