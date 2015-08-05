@@ -14,33 +14,37 @@
 ## with this program; if not, write to the Free Software Foundation, Inc.,
 ## 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-CC       ?= gcc
-CFLAGS   += -W -Wall -std=gnu99 -Wextra
-LDFLAGS  +=
-NAME      = god_hands_solver
-SRC       = god_hands.c
+NAME            = god_hands_solver
+SRC             = $(wildcard *.c)
 
-all: depend $(NAME)
+CPPFLAGS        =
+LDFLAGS         =
+CFLAGS          = -W -Wall -Wextra -std=gnu99
 
-depend: .depend
+CC              = gcc
 
-.depend: $(SRC)
-	@$(RM) .depend
-	@$(CC) $(CFLAGS) -MM $^ > .depend
+OBJ             = $(SRC:.c=.o)
+DEP             = $(SRC:.c=.d)
 
--include .depend
-
-OBJ     = $(SRC:.c=.o)
+all: $(NAME)
 
 $(NAME): $(OBJ)
 	$(CC) -o $@ $^ $(LDFLAGS)
 
+-include $(DEP)
+
+%.d: %.c
+	$(CC) -MM $(CPPFLAGS) $(CFLAGS) $< -MF $@ -MT "$*.o $@"
+
 clean:
 	$(RM) $(OBJ)
-
-fclean: clean
 	$(RM) $(NAME)
 
-re: fclean all
+mrproper: clean
+	$(RM) $(DEP)
 
-.PHONY: all depend clean fclean all re
+distclean: mrproper
+	$(RM) $(addsuffix ~,$(SRC))
+	$(RM) $(wildcard $(addsuffix .sw*,$(addprefix .,$(SRC))))
+
+.PHONY: all clean mrproper distclean
